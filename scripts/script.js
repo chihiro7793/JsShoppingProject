@@ -74,6 +74,9 @@ class Product {
     this.id = id;
     this.price = price;
     this.image = image;
+    this.counter = 0;
+    this.cartItemTag = null
+      ;
   }
 
   render() {
@@ -93,6 +96,9 @@ class Product {
       .html(`<i class="fas fa-shopping-cart"></i>Add to cart<i class="fas fa-shopping-cart"></i>`)
       .onclick(() => {
         // TODO: Add to cart
+        const tobuyItem = new cartItem(this.name, this.id, this.price, this.image, this.counter++);
+        this.cartItemTag = tobuyItem.render();
+
       })
       .appendTo(imageContainer);
 
@@ -120,12 +126,8 @@ class CartItem {
     this.number--;
   }
   render() {
-    const cartContent = builder.create('div')
-      .className('cart-content')
-
     const cartItem = builder.create('div')
-      .className('cart-item')
-      .appendTo(cartContent);
+      .className('cart-item');
 
     builder.create('img')
       .src(this.image)
@@ -153,7 +155,6 @@ class CartItem {
       .appendTo(cartItem);
     const chevronup = builder.create('i')
       .className('fas fa-chevron-up')
-      .text('::before')
       .appendTo(amountDiv);
 
     builder.create('p')
@@ -163,15 +164,15 @@ class CartItem {
 
     const chevrondown = builder.create('i')
       .className('fas fa-chevron-down')
-      .text('::before')
       .appendTo(amountDiv);
 
-    return cartContent;
+    return cartItem;
   }
 }
 class CartHandler {
   constructor() {
     this.items = [];
+
   }
 
   add(name, id, price, image, number) {
@@ -191,7 +192,41 @@ class CartHandler {
   }
 
   render() {
-    //TODO
+    const cartContainer = builder.create('div')
+      .className('cart showCart');
+
+    const closeCartSpan = builder.create('span')
+      .className('close-cart').appendTo(cartContainer);
+    builder.create('i')
+      .className('fas fa-window-close')
+      .appendTo(closeCartSpan)
+      .onclick(() => cartContainer.className('cart'));
+
+    builder.create('h2')
+      .text('your cart')
+      .appendTo(cartContainer);
+
+    const cartContent = builder.create('div')
+      .className('cart-content')
+      .appendTo(cartContainer);
+
+
+    const cartFooter = builder.create('div')
+      .className('cart-footer')
+      .appendTo(cartContainer);
+    const totalPricetag = builder.create('h3')
+      .text('Your total is : $')
+      .appendTo(cartFooter);
+    builder.create('span')
+      .className('cart-total')
+      .text(this.totalPrice())
+      .appendTo(totalPricetag);
+
+    this.items.forEach(item => {
+      item.render().appendTo(cartContent);
+    });
+    return cartContainer;
+
   }
 
 
@@ -218,3 +253,14 @@ const PRODUCTS = parsedData.items.map(item => {
 
 const productSection = document.getElementById("product-section");
 PRODUCTS.forEach(item => item.render().appendTo(productSection))
+
+const cartBtn = document.getElementById('cartBtn');
+const cartDiv = document.getElementById('cartDiv')
+cartBtn.addEventListener('click', () => {
+  console.log('you clicked');
+  const cart = new CartHandler();
+  cartDiv.className = 'cart-overlay transparentBcg';
+  console.log(cart.render().build());
+  cartDiv.append(cart.render().build());
+
+});
