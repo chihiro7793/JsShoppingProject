@@ -167,6 +167,7 @@ class CartItem {
     return this.number--;
   }
   render() {
+    console.log('in render');
     const cartItem = builder.create('div')
       .className('cart-item');
 
@@ -197,6 +198,10 @@ class CartItem {
       .appendTo(cartItem);
     const chevronup = builder.create('i')
       .className('fas fa-chevron-up')
+      .onclick(() => {
+        this.increment();
+        cart.updatecart();
+      })
       .appendTo(amountDiv);
 
     builder.create('p')
@@ -205,6 +210,13 @@ class CartItem {
       .appendTo(amountDiv);
     const chevrondown = builder.create('i')
       .className('fas fa-chevron-down')
+      .onclick(() => {
+        this.decrement();
+        if (this.number === 0)
+          cart.remove(this.id);
+        else
+          cart.updatecart();
+      })
       .appendTo(amountDiv);
 
     return cartItem;
@@ -217,22 +229,42 @@ class CartHandler {
       .className('cart');
     this.cartContent = builder.create('div')
       .className('cart-content');
-    this.render();
   }
 
   add(cartItem) {
     this.items.push(cartItem);
     cartItem.render().appendTo(this.cartContent);
+    this.cartContainer.html("");
+    this.render();
+  }
+
+  updatecart() {
+    this.cartContent.html("");
+    this.cartContainer.html("");
+    this.items.forEach((i) => {
+      i.render().appendTo(this.cartContent);
+
+    })
+    this.render();
   }
 
   remove(id) {
-    //TODO
+    let index = 0;
+    index = this.items.forEach(it => {
+      if (it.id === id) {
+        index = this.items.indexOf(it);
+      }
+    });
+    this.items.splice(index, 1);
+    this.updatecart();
   }
 
   totalPrice() {
     let totalprice = 0;
-    this.items.forEach(item => totalprice = item.price * item.number + totalprice
-    );
+    this.items.forEach(item => {
+      console.log(`item.number is ${item.number}`);
+      totalprice = item.price * item.number + totalprice
+    });
     return totalprice;
   }
 
@@ -275,6 +307,7 @@ class CartHandler {
 
 //Make a cartHandler
 const cart = new CartHandler();
+cart.render();
 cartBtn.addEventListener('click', () => {
   cart.cartContainer.build().className = 'cart showCart';
   cartDiv.className = 'cart-overlay transparentBcg';
