@@ -81,6 +81,10 @@ const builder = ElementBuilder.getInstance();
 //Get doc elements
 const cartBtn = document.getElementById('cartBtn');
 const cartDiv = document.getElementById('cartDiv');
+const totalNumber = document.getElementById('totalNumber');
+let total = 0;
+totalNumber.innerHTML = total;
+
 
 
 
@@ -112,7 +116,6 @@ class Product {
       .onclick(() => {
         // TODO: Add to cart 
         const tobuyItem = new CartItem(this.name, this.id, this.price, this.image, 0);
-
         if (cart.items.length) {
           cart.items.forEach(item => {
             if (item.id === tobuyItem.id) {
@@ -199,6 +202,8 @@ class CartItem {
     const chevronup = builder.create('i')
       .className('fas fa-chevron-up')
       .onclick(() => {
+        total++;
+        totalNumber.innerHTML = total;
         this.increment();
         cart.updatecart();
       })
@@ -211,7 +216,10 @@ class CartItem {
     const chevrondown = builder.create('i')
       .className('fas fa-chevron-down')
       .onclick(() => {
+        total--;
+        totalNumber.innerHTML = total;
         this.decrement();
+
         if (this.number === 0)
           cart.remove(this.id);
         else
@@ -232,6 +240,8 @@ class CartHandler {
   }
 
   add(cartItem) {
+    total++;
+    totalNumber.innerHTML = total;
     this.items.push(cartItem);
     cartItem.render().appendTo(this.cartContent);
     this.cartContainer.html("");
