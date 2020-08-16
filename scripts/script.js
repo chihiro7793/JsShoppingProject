@@ -192,7 +192,7 @@ class CartItem {
       .text('remove')
       .appendTo(explanationDiv)
       .onclick(() => {
-        /*TODO*/
+        cart.remove(this.id);
       });
 
     const amountDiv = builder.create('div')
@@ -276,14 +276,17 @@ class CartHandler {
 
   remove(id) {
     let index = 0;
-    index = this.items.forEach(it => {
+    this.items.forEach(it => {
       if (it.id === id) {
         index = this.items.indexOf(it);
       }
+      return index;
     });
+    console.log(this.items[index]);
+    total -= this.items[index].number;
+    totalNumber.innerHTML = total;
     this.items.splice(index, 1);
-    total--;
-    totalNumber = total;
+
     this.updatecart();
   }
 
