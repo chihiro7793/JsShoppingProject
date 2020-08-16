@@ -68,15 +68,30 @@ const RAW_DATA = `
   ]
 }
 `
+//Make a builder 
+ElementBuilder.getInstance = function () {
+  return {
+    create: function (name) {
+      return new ElementBuilder(name);
+    }
+  }
+}
+const builder = ElementBuilder.getInstance();
+
+//Get doc elements
+const cartBtn = document.getElementById('cartBtn');
+const cartDiv = document.getElementById('cartDiv');
+
+
+
+
+//Product
 class Product {
   constructor(name, id, price, image) {
     this.name = name;
     this.id = id;
     this.price = price;
     this.image = image;
-    this.counter = 0;
-    this.cartItemTag = null
-      ;
   }
 
   render() {
@@ -95,10 +110,20 @@ class Product {
       .className('bag-btn')
       .html(`<i class="fas fa-shopping-cart"></i>Add to cart<i class="fas fa-shopping-cart"></i>`)
       .onclick(() => {
-        // TODO: Add to cart
-        const tobuyItem = new cartItem(this.name, this.id, this.price, this.image, this.counter++);
-        this.cartItemTag = tobuyItem.render();
+        // TODO: Add to cart 
+        const tobuyItem = new CartItem(this.name, this.id, this.price, this.image, 0);
 
+        if (cart.items.length) {
+          cart.items.forEach(item => {
+            if (item.id === tobuyItem.id) {
+              tobuyItem.increment();
+            } else {
+              cart.add(tobuyItem);
+            }
+          });
+        } else {
+          cart.add(tobuyItem);
+        }
       })
       .appendTo(imageContainer);
 
@@ -110,6 +135,20 @@ class Product {
   }
 }
 
+//Convert raw data to comprehensible products
+const parsedData = JSON.parse(RAW_DATA)
+const PRODUCTS = parsedData.items.map(item => {
+  return new Product(
+    item.fields.title,
+    item.sys.id,
+    item.fields.price,
+    item.fields.image.fields.file.url
+  );
+})
+const productSection = document.getElementById("product-section");
+PRODUCTS.forEach(item => item.render().appendTo(productSection));
+
+
 class CartItem {
   constructor(name, id, price, image, number) {
     this.name = name;
@@ -117,17 +156,20 @@ class CartItem {
     this.image = image;
     this.price = price;
     this.number = number;
+    this.increment();
+
   }
 
   increment() {
-    this.number++;
+    return this.number++;
   }
   decrement() {
-    this.number--;
+    return this.number--;
   }
   render() {
     const cartItem = builder.create('div')
       .className('cart-item');
+
 
     builder.create('img')
       .src(this.image)
@@ -159,9 +201,8 @@ class CartItem {
 
     builder.create('p')
       .className('item-amount')
-      .text('1')
-      .appendTo(chevronup);
-
+      .text(this.number)
+      .appendTo(amountDiv);
     const chevrondown = builder.create('i')
       .className('fas fa-chevron-down')
       .appendTo(amountDiv);
@@ -172,12 +213,16 @@ class CartItem {
 class CartHandler {
   constructor() {
     this.items = [];
-
+    this.cartContainer = builder.create('div')
+      .className('cart');
+    this.cartContent = builder.create('div')
+      .className('cart-content');
+    this.render();
   }
 
-  add(name, id, price, image, number) {
-    const item = new CartItem(name, id, price, image, number);
-    item.push(items);
+  add(cartItem) {
+    this.items.push(cartItem);
+    cartItem.render().appendTo(this.cartContent);
   }
 
   remove(id) {
@@ -192,28 +237,27 @@ class CartHandler {
   }
 
   render() {
-    const cartContainer = builder.create('div')
-      .className('cart showCart');
 
     const closeCartSpan = builder.create('span')
-      .className('close-cart').appendTo(cartContainer);
+      .className('close-cart').appendTo(this.cartContainer);
     builder.create('i')
       .className('fas fa-window-close')
       .appendTo(closeCartSpan)
-      .onclick(() => cartContainer.className('cart'));
+      .onclick(
+        () => {
+          this.cartContainer.className('cart');
+          cartDiv.className = 'cart-overlay';
+        });
 
     builder.create('h2')
       .text('your cart')
-      .appendTo(cartContainer);
+      .appendTo(this.cartContainer);
 
-    const cartContent = builder.create('div')
-      .className('cart-content')
-      .appendTo(cartContainer);
-
+    this.cartContent.appendTo(this.cartContainer);
 
     const cartFooter = builder.create('div')
       .className('cart-footer')
-      .appendTo(cartContainer);
+      .appendTo(this.cartContainer);
     const totalPricetag = builder.create('h3')
       .text('Your total is : $')
       .appendTo(cartFooter);
@@ -222,45 +266,17 @@ class CartHandler {
       .text(this.totalPrice())
       .appendTo(totalPricetag);
 
-    this.items.forEach(item => {
-      item.render().appendTo(cartContent);
-    });
-    return cartContainer;
 
-  }
+    return this.cartContainer;
 
-
-}
-
-ElementBuilder.getInstance = function () {
-  return {
-    create: function (name) {
-      return new ElementBuilder(name);
-    }
   }
 }
 
-const builder = ElementBuilder.getInstance();
-const parsedData = JSON.parse(RAW_DATA)
-const PRODUCTS = parsedData.items.map(item => {
-  return new Product(
-    item.fields.title,
-    item.sys.id,
-    item.fields.price,
-    item.fields.image.fields.file.url
-  );
-})
 
-const productSection = document.getElementById("product-section");
-PRODUCTS.forEach(item => item.render().appendTo(productSection))
-
-const cartBtn = document.getElementById('cartBtn');
-const cartDiv = document.getElementById('cartDiv')
+//Make a cartHandler
+const cart = new CartHandler();
 cartBtn.addEventListener('click', () => {
-  console.log('you clicked');
-  const cart = new CartHandler();
+  cart.cartContainer.build().className = 'cart showCart';
   cartDiv.className = 'cart-overlay transparentBcg';
-  console.log(cart.render().build());
-  cartDiv.append(cart.render().build());
-
+  cartDiv.append(cart.cartContainer.build());
 });
