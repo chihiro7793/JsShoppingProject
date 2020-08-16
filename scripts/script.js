@@ -115,15 +115,14 @@ class Product {
       .html(`<i class="fas fa-shopping-cart"></i>Add to cart<i class="fas fa-shopping-cart"></i>`)
       .onclick(() => {
         // TODO: Add to cart 
+        let clicked = 1;
         const tobuyItem = new CartItem(this.name, this.id, this.price, this.image, 0);
         if (cart.items.length) {
-          cart.items.forEach(item => {
-            if (item.id === tobuyItem.id) {
-              tobuyItem.increment();
-            } else {
-              cart.add(tobuyItem);
-            }
-          });
+          if (cart.checkduplicate(tobuyItem)) {
+            cart.updatecart();
+          } else {
+            cart.add(tobuyItem);
+          }
         } else {
           cart.add(tobuyItem);
         }
@@ -170,7 +169,6 @@ class CartItem {
     return this.number--;
   }
   render() {
-    console.log('in render');
     const cartItem = builder.create('div')
       .className('cart-item');
 
@@ -239,6 +237,24 @@ class CartHandler {
       .className('cart-content');
   }
 
+  checkduplicate(item) {
+    let flag = false;
+
+    for (let index = 0; index < this.items.length; index++) {
+      if (this.items[index].id === item.id) {
+        flag = true;
+        this.items[index].increment();
+        total++;
+        totalNumber.innerHTML = total;
+        break;
+      } else {
+        flag = false;
+      }
+
+    }
+    console.log(flag);
+    return flag;
+  }
   add(cartItem) {
     total++;
     totalNumber.innerHTML = total;
@@ -266,13 +282,14 @@ class CartHandler {
       }
     });
     this.items.splice(index, 1);
+    total--;
+    totalNumber = total;
     this.updatecart();
   }
 
   totalPrice() {
     let totalprice = 0;
     this.items.forEach(item => {
-      console.log(`item.number is ${item.number}`);
       totalprice = item.price * item.number + totalprice
     });
     return totalprice;
@@ -307,8 +324,23 @@ class CartHandler {
       .className('cart-total')
       .text(this.totalPrice())
       .appendTo(totalPricetag);
-
-
+    builder.create('button')
+      .className('clear-cart banner-btn')
+      .text('CLEAR CART')
+      .onclick(() => {
+        if (this.items.length) {
+          this.items = [];
+          total = 0;
+          totalNumber.innerHTML = total;
+          this.cartContent.html("");
+          this.cartContainer.html("");
+          this.render();
+        } else {
+          this.cartContainer.className('cart');
+          cartDiv.className = 'cart-overlay';
+        }
+      })
+      .appendTo(cartFooter);
     return this.cartContainer;
 
   }
