@@ -114,9 +114,9 @@ class Product {
       .className('bag-btn')
       .html(`<i class="fas fa-shopping-cart"></i>Add to cart<i class="fas fa-shopping-cart"></i>`)
       .onclick(() => {
-        // TODO: Add to cart 
-        let clicked = 1;
+        //Make a new object of CartItem class when clicking on each product
         const tobuyItem = new CartItem(this.name, this.id, this.price, this.image, 0);
+        //If cart is not empty check for duplication else add new item to it.
         if (cart.items.length) {
           if (cart.checkduplicate(tobuyItem)) {
             cart.updatecart();
@@ -168,6 +168,7 @@ class CartItem {
   decrement() {
     return this.number--;
   }
+
   render() {
     const cartItem = builder.create('div')
       .className('cart-item');
@@ -197,7 +198,8 @@ class CartItem {
 
     const amountDiv = builder.create('div')
       .appendTo(cartItem);
-    const chevronup = builder.create('i')
+
+    builder.create('i')
       .className('fas fa-chevron-up')
       .onclick(() => {
         total++;
@@ -211,7 +213,7 @@ class CartItem {
       .className('item-amount')
       .text(this.number)
       .appendTo(amountDiv);
-    const chevrondown = builder.create('i')
+    builder.create('i')
       .className('fas fa-chevron-down')
       .onclick(() => {
         total--;
@@ -252,18 +254,22 @@ class CartHandler {
       }
 
     }
-    console.log(flag);
     return flag;
   }
+
+  //Adds new item to cart
   add(cartItem) {
     total++;
     totalNumber.innerHTML = total;
     this.items.push(cartItem);
+    //Rendered Item appends to cart
     cartItem.render().appendTo(this.cartContent);
+    //Empty cartcontainer
     this.cartContainer.html("");
     this.render();
   }
 
+  //Renders cart by each change
   updatecart() {
     this.cartContent.html("");
     this.cartContainer.html("");
@@ -290,10 +296,11 @@ class CartHandler {
     this.updatecart();
   }
 
+  //calculate totalPrice
   totalPrice() {
     let totalprice = 0;
     this.items.forEach(item => {
-      totalprice = item.price * item.number + totalprice
+      totalprice = parseFloat((item.price * item.number + totalprice).toFixed(10));
     });
     return totalprice;
   }
