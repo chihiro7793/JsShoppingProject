@@ -97,7 +97,7 @@ class Product {
     this.price = price;
     this.image = image;
   }
-
+  //Render each product on homepage
   render() {
     const container = builder.create('article')
       .className('product')
@@ -150,7 +150,7 @@ const PRODUCTS = parsedData.items.map(item => {
 const productSection = document.getElementById("product-section");
 PRODUCTS.forEach(item => item.render().appendTo(productSection));
 
-
+//Describes each item in the cart
 class CartItem {
   constructor(name, id, price, image, number) {
     this.name = name;
@@ -169,6 +169,7 @@ class CartItem {
     return this.number--;
   }
 
+  //Renders each item in cart and return the container
   render() {
     const cartItem = builder.create('div')
       .className('cart-item');
@@ -296,7 +297,7 @@ class CartHandler {
     this.updatecart();
   }
 
-  //calculate totalPrice
+  //Calculate totalPrice
   totalPrice() {
     let totalprice = 0;
     this.items.forEach(item => {
@@ -305,8 +306,8 @@ class CartHandler {
     return totalprice;
   }
 
+  //Renders cart and return the container
   render() {
-
     const closeCartSpan = builder.create('span')
       .className('close-cart').appendTo(this.cartContainer);
     builder.create('i')
@@ -357,9 +358,11 @@ class CartHandler {
 }
 
 
-//Make a cartHandler
+//Make a cartHandler here to be available everywhere
 const cart = new CartHandler();
+//Renders cart
 cart.render();
+//Open cart by clicking on its icon
 cartBtn.addEventListener('click', () => {
   cart.cartContainer.build().className = 'cart showCart';
   cartDiv.className = 'cart-overlay transparentBcg';
