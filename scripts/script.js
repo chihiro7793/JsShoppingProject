@@ -115,16 +115,16 @@ class Product {
       .html(`<i class="fas fa-shopping-cart"></i>Add to cart<i class="fas fa-shopping-cart"></i>`)
       .onclick(() => {
         //Make a new object of CartItem class when clicking on each product
-        const tobuyItem = new CartItem(this.name, this.id, this.price, this.image, 0);
+        const toBuyItem = new CartItem(this.name, this.id, this.price, this.image, 0);
         //If cart is not empty check for duplication else add new item to it.
         if (cart.items.length) {
-          if (cart.checkduplicate(tobuyItem)) {
-            cart.updatecart();
+          if (cart.checkDuplicate(toBuyItem)) {
+            cart.updateCart();
           } else {
-            cart.add(tobuyItem);
+            cart.add(toBuyItem);
           }
         } else {
-          cart.add(tobuyItem);
+          cart.add(toBuyItem);
         }
       })
       .appendTo(imageContainer);
@@ -206,7 +206,7 @@ class CartItem {
         total++;
         totalNumber.innerHTML = total;
         this.increment();
-        cart.updatecart();
+        cart.updateCart();
       })
       .appendTo(amountDiv);
 
@@ -224,7 +224,7 @@ class CartItem {
         if (this.number === 0)
           cart.remove(this.id);
         else
-          cart.updatecart();
+          cart.updateCart();
       })
       .appendTo(amountDiv);
 
@@ -240,28 +240,36 @@ class CartHandler {
       .className('cart-content');
   }
 
-  checkduplicate(item) {
-    let flag = false;
+  checkDuplicate(item) {
+    // let flag = false;
 
-    for (let index = 0; index < this.items.length; index++) {
-      if (this.items[index].id === item.id) {
-        flag = true;
-        this.items[index].increment();
-        total++;
-        totalNumber.innerHTML = total;
-        break;
-      } else {
-        flag = false;
-      }
-
+    const alreadyExistsItem = this.items.find(x => x.id === item.id);
+    if (alreadyExistsItem) {
+      alreadyExistsItem.increment();
+      totalNumber.innerHTML = ++total;
     }
-    return flag;
+
+    return !!alreadyExistsItem;
+
+    // for (let index = 0; index < this.items.length; index++) {
+    //   if (this.items[index].id === item.id) {
+    //     flag = true;
+    //     this.items[index].increment();
+    //     total++;
+    //     totalNumber.innerHTML = total;
+    //     break;
+    //   } else {
+    //     flag = false;
+    //   }
+
+    // }
+    // return flag;
   }
 
   //Adds new item to cart
   add(cartItem) {
-    total++;
-    totalNumber.innerHTML = total;
+    // total++;
+    totalNumber.innerHTML = ++total;
     this.items.push(cartItem);
     //Rendered Item appends to cart
     cartItem.render().appendTo(this.cartContent);
@@ -271,7 +279,7 @@ class CartHandler {
   }
 
   //Renders cart by each change
-  updatecart() {
+  updateCart() {
     this.cartContent.html("");
     this.cartContainer.html("");
     this.items.forEach((i) => {
@@ -282,28 +290,37 @@ class CartHandler {
   }
 
   remove(id) {
-    let index = 0;
-    this.items.forEach(it => {
-      if (it.id === id) {
-        index = this.items.indexOf(it);
-      }
-      return index;
-    });
-    console.log(this.items[index]);
-    total -= this.items[index].number;
-    totalNumber.innerHTML = total;
+    const index = this.items.findIndex(x => x.id === id);
+    if (index !== -1) {
+      total -= this.items[index].number;
+    }
+
+    // let index = 0;
+    // this.items.forEach(it => {
+    //   if (it.id === id) {
+    //     index = this.items.indexOf(it);
+    //   }
+    //   return index;
+    // });
+    // console.log(this.items[index]);
+    // total -= this.items[index].number;
+    // totalNumber.innerHTML = total;
     this.items.splice(index, 1);
 
-    this.updatecart();
+    this.updateCart();
   }
 
   //Calculate totalPrice
   totalPrice() {
-    let totalprice = 0;
-    this.items.forEach(item => {
-      totalprice = parseFloat((item.price * item.number + totalprice).toFixed(10));
-    });
-    return totalprice;
+    return this.items.reduce((acc, item) =>
+      parseFloat((item.price * item.number + acc).toFixed(10)),
+      0
+    );
+    // let totalprice = 0;
+    // this.items.forEach(item => {
+    //   totalprice = parseFloat((item.price * item.number + totalprice).toFixed(10));
+    // });
+    // return totalprice;
   }
 
   //Renders cart and return the container
