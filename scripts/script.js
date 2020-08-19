@@ -203,8 +203,6 @@ class CartItem {
     builder.create('i')
       .className('fas fa-chevron-up')
       .onclick(() => {
-        total++;
-        totalNumber.innerHTML = total;
         this.increment();
         cart.updateCart();
       })
@@ -217,14 +215,14 @@ class CartItem {
     builder.create('i')
       .className('fas fa-chevron-down')
       .onclick(() => {
-        total--;
-        totalNumber.innerHTML = total;
+        //A flag which shows decrement in totalNumber
+        const dec = true;
         this.decrement();
 
         if (this.number === 0)
-          cart.remove(this.id);
+          cart.remove(this.id, dec);
         else
-          cart.updateCart();
+          cart.updateCart(dec);
       })
       .appendTo(amountDiv);
 
@@ -233,43 +231,26 @@ class CartItem {
 }
 class CartHandler {
   constructor() {
+    this.firstTime = true;
     this.items = [];
     this.cartContainer = builder.create('div')
       .className('cart');
     this.cartContent = builder.create('div')
       .className('cart-content');
+    this.render();
   }
 
   checkDuplicate(item) {
-    // let flag = false;
-
     const alreadyExistsItem = this.items.find(x => x.id === item.id);
     if (alreadyExistsItem) {
       alreadyExistsItem.increment();
-      totalNumber.innerHTML = ++total;
     }
 
     return !!alreadyExistsItem;
-
-    // for (let index = 0; index < this.items.length; index++) {
-    //   if (this.items[index].id === item.id) {
-    //     flag = true;
-    //     this.items[index].increment();
-    //     total++;
-    //     totalNumber.innerHTML = total;
-    //     break;
-    //   } else {
-    //     flag = false;
-    //   }
-
-    // }
-    // return flag;
   }
 
   //Adds new item to cart
   add(cartItem) {
-    // total++;
-    totalNumber.innerHTML = ++total;
     this.items.push(cartItem);
     //Rendered Item appends to cart
     cartItem.render().appendTo(this.cartContent);
@@ -279,35 +260,28 @@ class CartHandler {
   }
 
   //Renders cart by each change
-  updateCart() {
+  updateCart(decrementFlg) {
+    decrementFlg = decrementFlg || false;
+
     this.cartContent.html("");
     this.cartContainer.html("");
     this.items.forEach((i) => {
       i.render().appendTo(this.cartContent);
 
     })
-    this.render();
+    this.render(decrementFlg);
   }
 
-  remove(id) {
+  remove(id, decrementFlg) {
+    decrementFlg = decrementFlg || false;
     const index = this.items.findIndex(x => x.id === id);
     if (index !== -1) {
       total -= this.items[index].number;
     }
-
-    // let index = 0;
-    // this.items.forEach(it => {
-    //   if (it.id === id) {
-    //     index = this.items.indexOf(it);
-    //   }
-    //   return index;
-    // });
-    // console.log(this.items[index]);
-    // total -= this.items[index].number;
-    // totalNumber.innerHTML = total;
+    console.log(`total in remove is ${total}`);
     this.items.splice(index, 1);
 
-    this.updateCart();
+    this.updateCart(decrementFlg);
   }
 
   //Calculate totalPrice
@@ -316,15 +290,25 @@ class CartHandler {
       parseFloat((item.price * item.number + acc).toFixed(10)),
       0
     );
-    // let totalprice = 0;
-    // this.items.forEach(item => {
-    //   totalprice = parseFloat((item.price * item.number + totalprice).toFixed(10));
-    // });
-    // return totalprice;
   }
 
   //Renders cart and return the container
-  render() {
+  render(decrementFlg) {
+    //This flag helps render to figure out when total should be decreased
+    decrementFlg = decrementFlg || false;
+
+    if (decrementFlg)
+      totalNumber.innerHTML = --total;
+
+    //Check if it's the first time page is loading
+    if (this.firstTime) {
+      totalNumber.innerHTML = total;
+      this.firstTime = false;
+    } else if (!decrementFlg) {
+      totalNumber.innerHTML = ++total;
+    }
+
+
     const closeCartSpan = builder.create('span')
       .className('close-cart').appendTo(this.cartContainer);
     builder.create('i')
@@ -377,8 +361,6 @@ class CartHandler {
 
 //Make a cartHandler here to be available everywhere
 const cart = new CartHandler();
-//Renders cart
-cart.render();
 //Open cart by clicking on its icon
 cartBtn.addEventListener('click', () => {
   cart.cartContainer.build().className = 'cart showCart';
